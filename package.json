@@ -1,0 +1,24 @@
+{
+  "name": "minesweeper",
+  "version": "1.0.0",
+  "description": "\"# Minesweeper\" \r \"# Minesweeper\" \r # Minesweeper # Minesweeper",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiratsuchisatoshi/Minesweeper.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shiratsuchisatoshi/Minesweeper/issues"
+  },
+  "homepage": "https://github.com/shiratsuchisatoshi/Minesweeper#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "index.js": "0.0.3",
+    "nodemon": "^1.18.6"
+  }
+}
