@@ -1,129 +1,113 @@
-// 'use strict';
-// console.log('hello, world!');
-
-// const express =require('express');
-// const app =express();
-
-// app.get('/', (req ,res)=>{
-//     res.send('a');
-// });
-
-// app.listen(8000);
-
-// // const board2 =[
-// // [{
-// //  opened:false
-// // },{
-// //  hasBom:false,
-// //  opened:false,
-// // },{
-// //  hasBom:false,
-// //  opened:false,
-// // }]
-// // ];0;
-
-
 const express =require('express');
 const app =express();
 const width = 10;
 const height = 10;
 
-
-
-// const board2 ={
-//  hasBom:false,
-//  opened:false,
-// };
-
-
+//周辺情報
+const around =[
+    [-1,-1],
+    [0,-1],
+    [1,-1],
+    [1,0],
+    [1,1],
+    [0,1],
+    [-1,1],
+    [-1,0],
+  ];
 
 const board =[];
 
 for ( let i=0; i<width; i++){ 
-        board[i]=[]
+    board[i]=[]
     for ( let j=0; j<height; j++){ 
-        board[i][j]={
-            hasBom:false,
-            opened:false,
-           }    
+        board[i][j]={ hasBom:false,opened:false }    
     }
 }
 
 
-
-
-let BomCount = 10;
-let arr=[];
+let BomCount = 10;   //★爆弾の数
+const BomPosition=[];//★爆弾の場所を格納用の配列
  
 while(BomCount > 0) {
- 
+     
     BomCount--;
 
-    // let i = Math.floor(Math.random() *9);
-    // let j = Math.floor(Math.random() *9);
-    let i = BomCount
-    let j = BomCount
-    arr.push([i,j]);
-        board[i][j] = { hasBom: true, opened: false }
-        
-        
+    let i = Math.floor(Math.random() *9);
+    let j = Math.floor(Math.random() *9);
+
+    // let i = BomCount
+    // let j = BomCount
+    board[i][j] = { hasBom: true, opened: false};
+    BomPosition.push([i,j]);//★爆弾の場所を配列に格納★ 
 }
 
-
-
-  let count=0;
+// console.log(BomPosition);//爆弾の座標確認用 
 
 
 app.get('/board', (req ,res)=>{
+       
+    //urlのパラメーターを取得
+    let x= Number(req.query.x);
+    let y= Number(req.query.y);
+    let user = req.query.user;
+        board[y][x]= { user:user ,opened: true }
 
-    for ( let i=0; i<width; i++){ 
-    for ( let j=0; j<height; j++){ 
-       delete board[i][j].hasBom
-    }
-}
+    //周辺の爆弾捜査
+    let bomnum = 0;
 
-   let x= req.query.x;
-   let y= req.query.y;
+    around.map(( value, index, array )=>{
 
-   board[y][x]= { opened: true }
+        let a = array[index][0];
+        let b = array[index][1];
+        let c = y+a;
+        let d = x+b;
 
-
-arr.map(( value, index, array )=>{
-
-
-    if(board[y][x]==board[array[index][0]][array[index][1]]){
-
-
-    //「array」と「index」を利用して、元の配列データを変更する
-    board[array[index][0]][array[index][1]]= { exploded: true,opened: true }
-                    count++;
-
-                    delete array[index];
-    
+            if(c>=0 && c<=9 && d>=0 && d<=9){
+                if(board[c][d].hasBom === true){ 
+                    bomnum++;
                 }
-
-});
-
-if(count==1){
-
-    arr.map(( value, index, array )=>{
-    //「array」と「index」を利用して、元の配列データを変更する
-    board[array[index][0]][array[index][1]]= { // アクセスした場所に爆弾があった
-                    exploded: true,
-                    opened: false, // 開いている
-                                      }
-                })
-            
-            count=0;};
-
-
+                board[y][x].number = bomnum;
+            }   
+    });
    
-   res.json(board);   
+
+    let count = 0; // もしどこかでexploded: trueになったときにカウントされる
+
+    // 開いた座標に爆弾があるか確認
+    BomPosition.map(( value, index, arr )=>{
+        if(board[y][x]==board[arr[index][0]][arr[index][1]]){
+        //「array」と「index」を利用して、元の配列データを変更する
+            board[arr[index][0]][arr[index][1]]= { exploded: true,opened: true };
+                count++;
+                    delete arr[index];// 開いた座標を配列から削除（その他の誘爆に巻き込まれないため）
+        }
+    });
+
+    //もしどこかでexploded: trueになった場合（カウントが1になった場合）、ほかの爆弾も爆発
+    if(count==1){
+        BomPosition.map(( value, index, arr )=>{
+        //「array」と「index」を利用して、元の配列データを変更する
+            board[arr[index][0]][arr[index][1]]= { exploded: true,opened: false };
+        })
+        count=0; // カウントを0に戻す
+    };
+
+ 
+    //   配列をコピー
+    let str = JSON.stringify(board);
+    let board2 = JSON.parse(str);
+
+   //   hasBomを隠す
+    for ( let i=0; i<width; i++){ 
+        for ( let j=0; j<height; j++){ 
+            delete board2[i][j].hasBom;
+        }
+    }
+
+    res.json(board2);   
+    console.log(board2);
   
 });
 
+
 app.listen(8000);
-
-
-
-console.log(board);
