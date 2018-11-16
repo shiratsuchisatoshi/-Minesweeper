@@ -2,6 +2,29 @@ const express =require('express');
 const app =express();
 const width = 10;
 const height = 10;
+app.use(express.static('static'));
+
+
+// これでもかえる
+// app.get('/',(req,res)=>{
+//     res.send(バックコートで囲う
+// <html>
+//     <head>
+//         <meta charset="UTF-8">
+//     </head>
+//     <body>
+//         <div id="app"></div>
+//         <style>
+//         </style>
+//         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+//         <script>
+//         </script>
+//     </body>
+// </html>"
+
+
+//     )
+// }
 
 //周辺情報
 const around =[
@@ -41,7 +64,8 @@ while(BomCount > 0) {
     BomPosition.push([i,j]);//★爆弾の場所を配列に格納★ 
 }
 
-// console.log(BomPosition);//爆弾の座標確認用 
+//爆弾の座標確認用 
+// console.log(BomPosition);
 
 
 app.get('/board', (req ,res)=>{
@@ -76,23 +100,21 @@ app.get('/board', (req ,res)=>{
     // 開いた座標に爆弾があるか確認
     BomPosition.map(( value, index, arr )=>{
         if(board[y][x]==board[arr[index][0]][arr[index][1]]){
-        //「array」と「index」を利用して、元の配列データを変更する
             board[arr[index][0]][arr[index][1]]= { exploded: true,opened: true };
                 count++;
                     delete arr[index];// 開いた座標を配列から削除（その他の誘爆に巻き込まれないため）
         }
+
+         //もしどこかでexploded: trueになった場合（カウントが1になった場合）、ほかの爆弾も爆発
+        if(count==1){
+            BomPosition.map(( value, index, arr )=>{
+                board[arr[index][0]][arr[index][1]]= { exploded: true,opened: false };
+            })
+            count=0; // カウントを0に戻す
+        }
+
     });
 
-    //もしどこかでexploded: trueになった場合（カウントが1になった場合）、ほかの爆弾も爆発
-    if(count==1){
-        BomPosition.map(( value, index, arr )=>{
-        //「array」と「index」を利用して、元の配列データを変更する
-            board[arr[index][0]][arr[index][1]]= { exploded: true,opened: false };
-        })
-        count=0; // カウントを0に戻す
-    };
-
- 
     //   配列をコピー
     let str = JSON.stringify(board);
     let board2 = JSON.parse(str);
